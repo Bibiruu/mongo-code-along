@@ -13,7 +13,7 @@ const Author = mongoose.model('Author' , {
 const Book = mongoose.model('Book', {
   title: String,
   author: {
-    type: mongoose.Schema.Types.ObjectId, // relating to a object id from another model
+    type: mongoose.Schema.Types.ObjectId, // relating the object id to author
     ref: 'Author' 
   }
 })
@@ -62,9 +62,31 @@ app.get("/authors", async (req, res) => {
   res.json(authors)
 })
 
-app.get("/books", async (req, res) => {
+app.get("/authors/:id", async (req, res) => {
+  const author = await Author.findById(req.params.id)
+
+  if(!author){
+    res.status(404).json({ error: "Error in author name."})
+  } else {
+    res.status(200).json(author)
+  }
+})
+
+app.get("/books", async (req, res) => { // used the rresetdata when this.
   const books = await Book.find().populate('author') // populate with the author and pull it out
   res.json(books)
+})
+
+app.get("/authors/:id/books", async (req, res) => { // authors on  :id
+  const author = await Author.findById(req.params.id)
+
+  if (author) {
+    const books = await Book.find({ author: mongoose.Types.ObjectId(author.id) }) //find the books of this author
+    res.status(200).json(books)
+  } else {
+    res.status(404).json({ error: "Error in author name."})
+  }
+
 })
 
 // Start the server
